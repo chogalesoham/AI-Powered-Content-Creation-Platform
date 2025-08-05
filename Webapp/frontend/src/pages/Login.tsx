@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Eye, EyeOff, Mail, Lock, Sparkles } from 'lucide-react';
 
@@ -10,6 +10,7 @@ interface LoginProps {
 export default function Login({ onLogin }: LoginProps) {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -17,11 +18,25 @@ export default function Login({ onLogin }: LoginProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+
+  // Handle signup redirect with success message and pre-filled email
+  useEffect(() => {
+    if (location.state?.message) {
+      setSuccessMessage(location.state.message);
+      if (location.state.email) {
+        setFormData(prev => ({ ...prev, email: location.state.email }));
+      }
+      // Clear the state to prevent showing message on refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setSuccessMessage(''); // Clear success message when attempting login
 
     try {
       await login(formData.email, formData.password);
@@ -55,6 +70,13 @@ export default function Login({ onLogin }: LoginProps) {
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome Back</h2>
             <p className="text-gray-600">Sign in to your ContentAI account</p>
           </div>
+
+          {/* Success Message */}
+          {successMessage && (
+            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-green-600 text-sm">{successMessage}</p>
+            </div>
+          )}
 
           {/* Error Message */}
           {error && (

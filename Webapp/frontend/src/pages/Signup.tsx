@@ -44,7 +44,13 @@ export default function Signup({ onSignup }: SignupProps) {
       if (onSignup) {
         onSignup({});
       }
-      navigate('/onboarding');
+      // Redirect to login page after successful signup
+      navigate('/login', {
+        state: {
+          message: 'Account created successfully! Please log in with your credentials.',
+          email: formData.email
+        }
+      });
     } catch (err: any) {
       setError(err.message || 'Signup failed. Please try again.');
     } finally {
