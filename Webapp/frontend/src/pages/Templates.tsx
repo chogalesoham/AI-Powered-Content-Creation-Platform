@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Heart, Copy, Eye, Sparkles, Wand2, CheckCircle } from 'lucide-react';
+import { Search, Filter, Heart, Copy, Eye, Sparkles, Wand2, CheckCircle, Plus, Edit, Trash2, User, Star } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../api';
 import TemplateEditorModal from '../components/TemplateEditorModal';
@@ -571,6 +571,20 @@ const templates = [
 const categories = ['All', 'Company Updates', 'Thought Leadership', 'Personal', 'Educational', 'Product', 'Marketing', 'Events', 'Recruitment', 'Customer Success', 'Industry News'];
 const platforms = ['All', 'LinkedIn', 'Twitter', 'Instagram', 'Facebook', 'TikTok', 'YouTube'];
 
+interface UserTemplate {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  platform: string;
+  content: string;
+  isPublic: boolean;
+  createdAt: string;
+  updatedAt: string;
+  uses: number;
+  likes: number;
+}
+
 export default function Templates() {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
@@ -581,16 +595,33 @@ export default function Templates() {
   const [favorites, setFavorites] = useState<number[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
+
+
   const [copySuccess, setCopySuccess] = useState<number | null>(null);
+  const [userTemplates, setUserTemplates] = useState<UserTemplate[]>([]);
+  const [showUserTemplates, setShowUserTemplates] = useState(false);
+  const [isCreatingTemplate, setIsCreatingTemplate] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState<UserTemplate | null>(null);
 
   const filteredTemplates = templates.filter(template => {
     const matchesSearch = template.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          template.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'All' || template.category === selectedCategory;
     const matchesPlatform = selectedPlatform === 'All' || template.platform === selectedPlatform;
-    
+
     return matchesSearch && matchesCategory && matchesPlatform;
   });
+
+  const filteredUserTemplates = userTemplates.filter(template => {
+    const matchesSearch = template.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         template.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === 'All' || template.category === selectedCategory;
+    const matchesPlatform = selectedPlatform === 'All' || template.platform === selectedPlatform;
+
+    return matchesSearch && matchesCategory && matchesPlatform;
+  });
+
+  const displayTemplates = showUserTemplates ? filteredUserTemplates : filteredTemplates;
 
   const toggleFavorite = (templateId: number) => {
     setFavorites(prev =>
@@ -601,7 +632,17 @@ export default function Templates() {
   };
 
   const useTemplate = (template: any) => {
-    setSelectedTemplate(template);
+    // Normalize template structure for the modal
+    const normalizedTemplate = {
+      id: template.id || Date.now(),
+      title: template.title || 'Untitled Template',
+      description: template.description || 'No description available',
+      category: template.category || 'Personal',
+      platform: template.platform || 'LinkedIn',
+      preview: template.preview || template.content || 'No content available'
+    };
+
+    setSelectedTemplate(normalizedTemplate);
     setIsModalOpen(true);
   };
 
@@ -616,20 +657,119 @@ export default function Templates() {
     }
   };
 
-  const handleModalClose = () => {
-    setIsModalOpen(false);
-    setSelectedTemplate(null);
+
+
+  const handleTemplateSave = async (editedContent: string) => {
+    if (isCreatingTemplate) {
+      // Create new user template
+      await createUserTemplate(editedContent);
+    } else if (editingTemplate) {
+      // Update existing user template
+      await updateUserTemplate(editingTemplate.id, editedContent);
+    } else {
+      // Save as new user template from existing template
+      await saveAsUserTemplate(editedContent);
+    }
   };
 
-  const handleTemplateSave = (editedContent: string) => {
-    // Template saved successfully - could add additional logic here
-    console.log('Template saved:', editedContent);
+  const createUserTemplate = async (content: string) => {
+    try {
+      const templateData = {
+        title: selectedTemplate?.title || 'My Custom Template',
+        description: selectedTemplate?.description || 'Custom template created by user',
+        category: selectedTemplate?.category || 'Personal',
+        platform: selectedTemplate?.platform || 'LinkedIn',
+        content: content,
+        isPublic: false
+      };
+
+      const response = await api.post('/templates/user', templateData);
+
+      if (response.data.success) {
+        setUserTemplates(prev => [...prev, response.data.template]);
+        console.log('User template created successfully');
+      }
+    } catch (error) {
+      console.error('Failed to create user template:', error);
+    }
+  };
+
+  const saveAsUserTemplate = async (content: string) => {
+    try {
+      const templateData = {
+        title: `${selectedTemplate?.title} (My Version)`,
+        description: `Customized version of ${selectedTemplate?.title}`,
+        category: selectedTemplate?.category || 'Personal',
+        platform: selectedTemplate?.platform || 'LinkedIn',
+        content: content,
+        isPublic: false
+      };
+
+      const response = await api.post('/templates/user', templateData);
+
+      if (response.data.success) {
+        setUserTemplates(prev => [...prev, response.data.template]);
+        console.log('Template saved to your templates');
+      }
+    } catch (error) {
+      console.error('Failed to save user template:', error);
+    }
+  };
+
+  const updateUserTemplate = async (templateId: string, content: string) => {
+    try {
+      const response = await api.put(`/templates/user/${templateId}`, {
+        content: content,
+        updatedAt: new Date().toISOString()
+      });
+
+      if (response.data.success) {
+        setUserTemplates(prev =>
+          prev.map(template =>
+            template.id === templateId
+              ? { ...template, content: content, updatedAt: new Date().toISOString() }
+              : template
+          )
+        );
+        console.log('User template updated successfully');
+      }
+    } catch (error) {
+      console.error('Failed to update user template:', error);
+    }
+  };
+
+  const deleteUserTemplate = async (templateId: string) => {
+    try {
+      const response = await api.delete(`/templates/user/${templateId}`);
+
+      if (response.data.success) {
+        setUserTemplates(prev => prev.filter(template => template.id !== templateId));
+        console.log('User template deleted successfully');
+      }
+    } catch (error) {
+      console.error('Failed to delete user template:', error);
+    }
+  };
+
+  const loadUserTemplates = async () => {
+    try {
+      const response = await api.get('/templates/user');
+
+      if (response.data.success) {
+        setUserTemplates(response.data.templates);
+      }
+    } catch (error) {
+      console.error('Failed to load user templates:', error);
+      // Fallback to empty array if API fails
+      setUserTemplates([]);
+    }
   };
 
   useEffect(() => {
     if (user?.niche && user?.goals) {
       generateAIContentIdeas();
     }
+    loadUserTemplates();
   }, [user]);
 
   const generateAIContentIdeas = async () => {
@@ -660,8 +800,61 @@ export default function Templates() {
       <div className="p-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Content Templates</h1>
-          <p className="text-gray-600">High-performing post formats proven to drive engagement</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">Content Templates</h1>
+              <p className="text-gray-600">High-performing post formats proven to drive engagement</p>
+            </div>
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => {
+                  setIsCreatingTemplate(true);
+                  setSelectedTemplate({
+                    id: 'new',
+                    title: 'New Template',
+                    description: 'Create your own custom template',
+                    category: 'Personal',
+                    platform: 'LinkedIn',
+                    preview: 'Start writing your template here...\n\nUse [PLACEHOLDER] for dynamic content.'
+                  });
+                  setIsModalOpen(true);
+                }}
+                className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Create Template
+              </button>
+
+            </div>
+          </div>
+        </div>
+
+        {/* Template Type Toggle */}
+        <div className="mb-6">
+          <div className="flex items-center space-x-1 bg-gray-100 rounded-lg p-1">
+            <button
+              onClick={() => setShowUserTemplates(false)}
+              className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                !showUserTemplates
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <Sparkles className="w-4 h-4 mr-2" />
+              Default Templates ({filteredTemplates.length})
+            </button>
+            <button
+              onClick={() => setShowUserTemplates(true)}
+              className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                showUserTemplates
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <User className="w-4 h-4 mr-2" />
+              My Templates ({filteredUserTemplates.length})
+            </button>
+          </div>
         </div>
 
         {/* AI Content Ideas */}
@@ -762,7 +955,11 @@ export default function Templates() {
 
         {/* Templates Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {filteredTemplates.map((template) => (
+          {displayTemplates.map((template) => {
+            const isUserTemplate = 'createdAt' in template;
+            const templateId = typeof template.id === 'string' ? template.id : template.id.toString();
+
+            return (
             <div key={template.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
               <div className="p-6">
                 <div className="flex items-start justify-between mb-4">
@@ -770,16 +967,51 @@ export default function Templates() {
                     <h3 className="text-lg font-semibold text-gray-900 mb-1">{template.title}</h3>
                     <p className="text-gray-600 text-sm">{template.description}</p>
                   </div>
-                  <button
-                    onClick={() => toggleFavorite(template.id)}
-                    className={`p-2 rounded-lg transition-colors ${
-                      favorites.includes(template.id)
-                        ? 'text-red-500 bg-red-50 hover:bg-red-100'
-                        : 'text-gray-400 hover:text-red-500 hover:bg-red-50'
-                    }`}
-                  >
-                    <Heart className={`w-5 h-5 ${favorites.includes(template.id) ? 'fill-current' : ''}`} />
-                  </button>
+                  <div className="flex items-center space-x-2">
+                    {isUserTemplate && (
+                      <>
+                        <button
+                          onClick={() => {
+                            setEditingTemplate(template as UserTemplate);
+                            setSelectedTemplate({
+                              id: template.id,
+                              title: template.title,
+                              description: template.description,
+                              category: template.category,
+                              platform: template.platform,
+                              preview: template.content
+                            });
+                            setIsModalOpen(true);
+                          }}
+                          className="p-2 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors"
+                          title="Edit template"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (window.confirm('Are you sure you want to delete this template?')) {
+                              deleteUserTemplate(templateId);
+                            }
+                          }}
+                          className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                          title="Delete template"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </>
+                    )}
+                    <button
+                      onClick={() => toggleFavorite(Number(template.id))}
+                      className={`p-2 rounded-lg transition-colors ${
+                        favorites.includes(Number(template.id))
+                          ? 'text-red-500 bg-red-50 hover:bg-red-100'
+                          : 'text-gray-400 hover:text-red-500 hover:bg-red-50'
+                      }`}
+                    >
+                      <Heart className={`w-5 h-5 ${favorites.includes(Number(template.id)) ? 'fill-current' : ''}`} />
+                    </button>
+                  </div>
                 </div>
 
                 <div className="flex items-center space-x-4 mb-4">
@@ -793,15 +1025,23 @@ export default function Templates() {
                   <span className="px-2 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-800">
                     {template.category}
                   </span>
-                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                    template.engagement === 'Very High'
-                      ? 'bg-green-100 text-green-800'
-                      : template.engagement === 'High'
-                      ? 'bg-yellow-100 text-yellow-800'
-                      : 'bg-gray-100 text-gray-800'
-                  }`}>
-                    {template.engagement} Engagement
-                  </span>
+                  {!isUserTemplate && (
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                      (template as any).engagement === 'Very High'
+                        ? 'bg-green-100 text-green-800'
+                        : (template as any).engagement === 'High'
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : 'bg-gray-100 text-gray-800'
+                    }`}>
+                      {(template as any).engagement} Engagement
+                    </span>
+                  )}
+                  {isUserTemplate && (
+                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-800">
+                      <Star className="w-3 h-3 inline mr-1" />
+                      My Template
+                    </span>
+                  )}
                 </div>
 
                 <div className="bg-gray-50 rounded-lg p-4 mb-4">
@@ -810,7 +1050,7 @@ export default function Templates() {
                     <Eye className="w-4 h-4 text-gray-400" />
                   </div>
                   <p className="text-sm text-gray-600 whitespace-pre-line line-clamp-6">
-                    {template.preview}
+                    {isUserTemplate ? template.content : (template as any).preview}
                   </p>
                 </div>
 
@@ -850,26 +1090,86 @@ export default function Templates() {
                 </div>
               </div>
             </div>
-          ))}
+          );
+          })}
         </div>
 
-        {filteredTemplates.length === 0 && (
+        {displayTemplates.length === 0 && (
           <div className="text-center py-12">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Search className="w-8 h-8 text-gray-400" />
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No templates found</h3>
-            <p className="text-gray-600">Try adjusting your search or filter criteria</p>
+            {showUserTemplates ? (
+              <>
+                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <User className="w-8 h-8 text-purple-600" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No user templates found</h3>
+                <p className="text-gray-600 mb-4">
+                  {userTemplates.length === 0
+                    ? "You haven't created any templates yet. Create your first template to get started!"
+                    : "Try adjusting your search or filters to find your templates."
+                  }
+                </p>
+                <button
+                  onClick={() => {
+                    setIsCreatingTemplate(true);
+                    setSelectedTemplate({
+                      id: 'new',
+                      title: 'New Template',
+                      description: 'Create your own custom template',
+                      category: 'Personal',
+                      platform: 'LinkedIn',
+                      preview: 'Start writing your template here...\n\nUse [PLACEHOLDER] for dynamic content.'
+                    });
+                    setIsModalOpen(true);
+                  }}
+                  className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Your First Template
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Search className="w-8 h-8 text-gray-400" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No templates found</h3>
+                <p className="text-gray-600">Try adjusting your search or filter criteria</p>
+              </>
+            )}
           </div>
         )}
 
         {/* Template Editor Modal */}
         <TemplateEditorModal
           isOpen={isModalOpen}
-          onClose={handleModalClose}
+          onClose={() => {
+            setIsModalOpen(false);
+            setIsCreatingTemplate(false);
+            setEditingTemplate(null);
+          }}
           template={selectedTemplate}
           onSave={handleTemplateSave}
         />
+
+        {/* Temporary Test Button - Remove after testing */}
+        <div className="fixed bottom-4 right-4 z-50">
+          <button
+            onClick={() => {
+              setSelectedTemplate({
+                id: 'test-123',
+                title: 'Test Template',
+                description: 'This is a test template',
+                category: 'Personal',
+                platform: 'LinkedIn',
+                preview: 'This is test content for the modal.\n\nIt should open properly now.'
+              });
+              setIsModalOpen(true);
+            }}
+            className="bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-red-600"
+          >
+            Test Modal
+          </button>
+        </div>
       </div>
     </div>
   );

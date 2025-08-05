@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ChatBot from '../components/ChatBot';
 
 // 50 AI Insights options
@@ -23,6 +23,62 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ user }: DashboardProps) {
+  // State variables
+  const [aiInsights, setAiInsights] = useState<any>(null);
+  const [loadingInsights, setLoadingInsights] = useState(false);
+  const [recentDrafts, setRecentDrafts] = useState<any[]>([]);
+  const [scheduledPosts, setScheduledPosts] = useState<any[]>([]);
+  const [contentStats, setContentStats] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [animatedStats, setAnimatedStats] = useState<any[]>([]);
+  const [showWelcome, setShowWelcome] = useState(false);
+  const [showStats, setShowStats] = useState(false);
+  const counterRefs = useRef<(HTMLElement | null)[]>([]);
+
+  // Counter animation function
+  const animateCounter = (element: HTMLElement, start: number, end: number, duration: number = 2000) => {
+    const startTime = performance.now();
+    const animate = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+
+      // Easing function for smooth animation
+      const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+      const current = Math.floor(start + (end - start) * easeOutQuart);
+
+      element.textContent = current.toString();
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      }
+    };
+    requestAnimationFrame(animate);
+  };
+
+  // Trigger animations after data loads
+  useEffect(() => {
+    if (!loading) {
+      // Welcome animation
+      setTimeout(() => setShowWelcome(true), 100);
+
+      // Stats animation
+      setTimeout(() => {
+        setShowStats(true);
+        // Animate counters
+        const currentStats = stats;
+        currentStats.forEach((stat, index) => {
+          const element = counterRefs.current[index];
+          if (element) {
+            const numericValue = parseInt(stat.value) || 0;
+            setTimeout(() => {
+              animateCounter(element, 0, numericValue, 1500 + index * 200);
+            }, 300 + index * 150);
+          }
+        });
+      }, 500);
+    }
+  }, [loading, contentStats]);
+
   useEffect(() => {
     fetchDashboardData();
   }, []);
@@ -55,14 +111,6 @@ export default function Dashboard({ user }: DashboardProps) {
       setLoading(false);
     }
   }
-  const [aiInsights, setAiInsights] = useState<any>(null);
-  const [loadingInsights, setLoadingInsights] = useState(false);
-  const [recentDrafts, setRecentDrafts] = useState<any[]>([]);
-  const [scheduledPosts, setScheduledPosts] = useState<any[]>([]);
-  const [contentStats, setContentStats] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  // ...existing code...
 
   const fetchAIInsights = async () => {
     setLoadingInsights(true);
@@ -126,10 +174,19 @@ export default function Dashboard({ user }: DashboardProps) {
       <div className="p-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Welcome back, {user?.name || 'Creator'}! 👋
-          </h1>
-          <p className="text-gray-600 mt-2">Here's what's happening with your content today.</p>
+          <div className={`transition-all duration-1000 ${showWelcome ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+            <h1 className="text-3xl font-bold text-gray-900 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+              Welcome back, {user?.name || 'Creator'}! 👋
+            </h1>
+            <p className="text-gray-600 mt-2 animate-fadeInUp animation-delay-200">
+              Here's what's happening with your content today.
+            </p>
+            {/* Achievement Badge */}
+            <div className={`mt-4 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200 transition-all duration-1000 ${showWelcome ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
+              <span className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
+              Content Creator Level: Pro ⭐
+            </div>
+          </div>
         </div>
 
         {/* Stats Grid */}
@@ -137,18 +194,43 @@ export default function Dashboard({ user }: DashboardProps) {
           {stats.map((stat, index) => {
             const Icon = stat.icon;
             return (
-              <div key={index} className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+              <div
+                key={index}
+                className={`bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-lg hover:scale-105 transition-all duration-500 ${
+                  showStats ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                }`}
+                style={{ transitionDelay: `${index * 150}ms` }}
+              >
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">{stat.label}</p>
-                    <p className="text-3xl font-bold text-gray-900 mt-2">{stat.value}</p>
-                    <p className={`text-sm mt-1 ${stat.change.startsWith('+') ? 'text-green-600' : 'text-red-600'}`}>
-                      {stat.change} from last week
+                    <p
+                      ref={el => counterRefs.current[index] = el}
+                      className="text-3xl font-bold text-gray-900 mt-2"
+                    >
+                      0
                     </p>
+                    <div className={`text-sm mt-1 flex items-center ${stat.change.startsWith('+') ? 'text-green-600' : 'text-red-600'}`}>
+                      <span className={`inline-block w-0 h-0 mr-1 transition-all duration-500 ${showStats ? 'w-2 h-2' : ''} ${
+                        stat.change.startsWith('+') ? 'bg-green-500' : 'bg-red-500'
+                      } rounded-full`}></span>
+                      {stat.change} from last week
+                    </div>
                   </div>
-                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center bg-${stat.color}-100`}>
-                    <Icon className={`w-6 h-6 text-${stat.color}-600`} />
+                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center bg-${stat.color}-100 transition-all duration-300 hover:scale-110`}>
+                    <Icon className={`w-6 h-6 text-${stat.color}-600 transition-all duration-300`} />
                   </div>
+                </div>
+
+                {/* Progress Bar */}
+                <div className="mt-4 bg-gray-200 rounded-full h-2 overflow-hidden">
+                  <div
+                    className={`h-full bg-gradient-to-r from-${stat.color}-400 to-${stat.color}-600 rounded-full transition-all duration-1000 ease-out`}
+                    style={{
+                      width: showStats ? `${Math.min(parseInt(stat.value) * 10, 100)}%` : '0%',
+                      transitionDelay: `${500 + index * 150}ms`
+                    }}
+                  ></div>
                 </div>
               </div>
             );

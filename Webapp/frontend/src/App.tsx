@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import ConnectionTest from './components/ConnectionTest';
 import Sidebar from './components/Sidebar';
+import PageTransition from './components/PageTransition';
 import Dashboard from './pages/Dashboard';
 import ToneAnalysis from './pages/ToneAnalysis';
 import PostGenerationAI from './pages/PostGenerationAI';
@@ -53,7 +54,7 @@ function AppLayout() {
       <Sidebar />
       <main className="flex-1 overflow-hidden ml-64">
         <Routes>
-          <Route path="/" element={<Dashboard user={user} />} />
+          <Route path="/" element={<PageTransition><Dashboard user={user} /></PageTransition>} />
           <Route path="/tone-analysis" element={<ToneAnalysis />} />
           <Route path="/post-generation-ai" element={<PostGenerationAI user={user} />} />
           <Route path="/templates" element={<Templates />} />
