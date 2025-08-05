@@ -17,7 +17,7 @@ const navigation = [
   { name: 'Templates', href: '/templates', icon: FileText },
   { name: 'Schedule', href: '/schedule', icon: Calendar },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
-  { name: 'Settings', href: '/settings', icon: Settings },
+  { name: 'Profile Settings', href: '/settings', icon: Settings },
 ];
 
 export default function Sidebar() {
