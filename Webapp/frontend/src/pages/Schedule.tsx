@@ -303,470 +303,456 @@ export default function Schedule() {
     }
   };
   return (
-    <div className="flex-1 overflow-auto">
-      <div className="p-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Content Schedule</h1>
-            <p className="text-gray-600">Manage your scheduled posts and automated content generation</p>
+    <div className="flex min-h-screen bg-gray-50">
+      <main className="flex-1 overflow-auto">
+        {/* ...existing code... */}
+        <div className="p-8">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">Content Schedule</h1>
+              <p className="text-gray-600">Manage your scheduled posts and automated content generation</p>
+            </div>
+            <button
+              onClick={() => setShowNewSchedule(true)}
+              className="flex items-center px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              New Schedule
+            </button>
           </div>
-          <button
-            onClick={() => setShowNewSchedule(true)}
-            className="flex items-center px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            New Schedule
-          </button>
-        </div>
-
-        {/* Tabs */}
-        <div className="flex space-x-1 bg-gray-100 rounded-lg p-1 mb-8 w-fit">
-          <button
-            onClick={() => setActiveTab('scheduled')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === 'scheduled'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            Scheduled Posts
-          </button>
-          <button
-            onClick={() => setActiveTab('recurring')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === 'recurring'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            Recurring Schedules
-          </button>
-        </div>
-
-        {/* Scheduled Posts Tab */}
-        {activeTab === 'scheduled' && (
-          <div className="space-y-4">
-            {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
-                <span className="ml-2 text-gray-600">Loading scheduled posts...</span>
-              </div>
-            ) : posts.length === 0 ? (
-              <div className="text-center py-12">
-                <CalendarIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No scheduled posts</h3>
-                <p className="text-gray-600 mb-4">Create your first scheduled post to get started.</p>
-                <button
-                  onClick={() => setShowNewSchedule(true)}
-                  className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600"
-                >
-                  Schedule Your First Post
-                </button>
-              </div>
-            ) : (
-              posts.map((post) => (
-              <div key={post._id || post.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                {editingPost && (editingPost._id || editingPost.id) === (post._id || post.id) ? (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-semibold text-gray-900">Edit Post</h3>
-                      <button
-                        onClick={() => setEditingPost(null)}
-                        className="p-2 text-gray-400 hover:text-gray-600"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
+          {/* Tabs */}
+          <div className="flex space-x-1 bg-gray-100 rounded-lg p-1 mb-8 w-fit">
+            <button
+              onClick={() => setActiveTab('scheduled')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === 'scheduled'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Scheduled Posts
+            </button>
+            <button
+              onClick={() => setActiveTab('recurring')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === 'recurring'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Recurring Schedules
+            </button>
+          </div>
+          {/* Scheduled Posts Tab */}
+          {activeTab === 'scheduled' && (
+            <div className="space-y-4">
+              {loading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
+                  <span className="ml-2 text-gray-600">Loading scheduled posts...</span>
+                </div>
+              ) : posts.length === 0 ? (
+                <div className="text-center py-12">
+                  <CalendarIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No scheduled posts</h3>
+                  <p className="text-gray-600 mb-4">Create your first scheduled post to get started.</p>
+                  <button
+                    onClick={() => setShowNewSchedule(true)}
+                    className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600"
+                  >
+                    Schedule Your First Post
+                  </button>
+                </div>
+              ) : (
+                posts.map((post) => (
+                <div key={post._id || post.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                  {editingPost && (editingPost._id || editingPost.id) === (post._id || post.id) ? (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-semibold text-gray-900">Edit Post</h3>
+                        <button
+                          onClick={() => setEditingPost(null)}
+                          className="p-2 text-gray-400 hover:text-gray-600"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <textarea
+                        value={editingPost.content}
+                        onChange={(e) => setEditingPost({ ...editingPost, content: e.target.value })}
+                        rows={6}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      />
+                      <input
+                        type="datetime-local"
+                        value={editingPost.scheduledFor.toISOString().slice(0, 16)}
+                        onChange={(e) => setEditingPost({ ...editingPost, scheduledFor: new Date(e.target.value) })}
+                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      />
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={handleSaveEdit}
+                          className="flex items-center px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600"
+                        >
+                          <Save className="w-4 h-4 mr-2" />
+                          Save Changes
+                        </button>
+                        <button
+                          onClick={() => setEditingPost(null)}
+                          className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                        >
+                          Cancel
+                        </button>
+                      </div>
                     </div>
-                    <textarea
-                      value={editingPost.content}
-                      onChange={(e) => setEditingPost({ ...editingPost, content: e.target.value })}
-                      rows={6}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    />
-                    <input
-                      type="datetime-local"
-                      value={editingPost.scheduledFor.toISOString().slice(0, 16)}
-                      onChange={(e) => setEditingPost({ ...editingPost, scheduledFor: new Date(e.target.value) })}
-                      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    />
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={handleSaveEdit}
-                        className="flex items-center px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600"
-                      >
-                        <Save className="w-4 h-4 mr-2" />
-                        Save Changes
-                      </button>
-                      <button
-                        onClick={() => setEditingPost(null)}
-                        className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-                      >
-                        Cancel
-                      </button>
+                  ) : (
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-3">
+                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                            post.platform === 'LinkedIn'
+                              ? 'bg-blue-100 text-blue-800'
+                              : 'bg-gray-100 text-gray-800'
+                          }`}>
+                            {post.platform}
+                          </span>
+                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(post.status)}`}>
+                            {post.status}
+                          </span>
+                          {post.autoGenerated && (
+                            <span className="px-2 py-1 text-xs font-medium rounded-full bg-teal-100 text-teal-800">
+                              AI Generated
+                            </span>
+                          )}
+                        </div>
+                        
+                        <p className="text-gray-900 mb-4 line-clamp-2">{post.content}</p>
+                        
+                        <div className="flex items-center text-sm text-gray-600">
+                          <CalendarIcon className="w-4 h-4 mr-1" />
+                          Scheduled for {formatDate(post.scheduledFor)}
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2 ml-4">
+                        <button
+                          onClick={() => setEditingPost(post)}
+                          className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                          title="Edit post"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handlePublishNow(post._id || post.id)}
+                          className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                          title="Publish now"
+                        >
+                          <Play className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeletePost(post._id || post.id)}
+                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Delete post"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ) : (
+                  )}
+                </div>
+                ))
+              )}
+            </div>
+          )}
+          {/* Recurring Schedules Tab */}
+          {activeTab === 'recurring' && (
+            <div className="space-y-4">
+              {loading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
+                  <span className="ml-2 text-gray-600">Loading recurring schedules...</span>
+                </div>
+              ) : recurring.length === 0 ? (
+                <div className="text-center py-12">
+                  <Clock className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No recurring schedules</h3>
+                  <p className="text-gray-600 mb-4">Set up automated content generation to save time.</p>
+                  <button
+                    onClick={() => setShowNewRecurring(true)}
+                    className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600"
+                  >
+                    Create Your First Schedule
+                  </button>
+                </div>
+              ) : (
+                recurring.map((schedule) => (
+                <div key={schedule._id || schedule.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center space-x-3 mb-3">
+                        <h3 className="text-lg font-semibold text-gray-900">{schedule.name}</h3>
                         <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                          post.platform === 'LinkedIn'
-                            ? 'bg-blue-100 text-blue-800'
+                          schedule.active
+                            ? 'bg-green-100 text-green-800'
                             : 'bg-gray-100 text-gray-800'
                         }`}>
-                          {post.platform}
+                          {schedule.active ? 'Active' : 'Paused'}
                         </span>
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(post.status)}`}>
-                          {post.status}
-                        </span>
-                        {post.autoGenerated && (
-                          <span className="px-2 py-1 text-xs font-medium rounded-full bg-teal-100 text-teal-800">
-                            AI Generated
-                          </span>
-                        )}
                       </div>
                       
-                      <p className="text-gray-900 mb-4 line-clamp-2">{post.content}</p>
+                      <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                          <p className="text-sm font-medium text-gray-700">Platform</p>
+                          <p className="text-sm text-gray-600">{schedule.platform}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-700">Content Type</p>
+                          <p className="text-sm text-gray-600">{schedule.contentType}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-700">Frequency</p>
+                          <p className="text-sm text-gray-600">{schedule.frequency}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-700">Next Generation</p>
+                          <p className="text-sm text-gray-600">{formatDate(schedule.nextGeneration)}</p>
+                        </div>
+                      </div>
                       
-                      <div className="flex items-center text-sm text-gray-600">
-                        <CalendarIcon className="w-4 h-4 mr-1" />
-                        Scheduled for {formatDate(post.scheduledFor)}
+                      <div className="flex items-center text-sm text-gray-500">
+                        <Clock className="w-4 h-4 mr-1" />
+                        Last generated: {formatDate(schedule.lastGenerated)}
                       </div>
                     </div>
                     
                     <div className="flex items-center space-x-2 ml-4">
                       <button
-                        onClick={() => setEditingPost(post)}
-                        className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-                        title="Edit post"
+                        onClick={() => generateScheduledContent(schedule._id || schedule.id)}
+                        disabled={generatingContent || !schedule.active}
+                        className="flex items-center px-3 py-1 text-sm font-medium bg-purple-100 text-purple-700 hover:bg-purple-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors"
+                        title="Generate content now"
                       >
+                        <Wand2 className="w-4 h-4 mr-1" />
+                        {generatingContent ? 'Generating...' : 'Generate Now'}
+                      </button>
+                      <button className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors">
                         <Edit className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={() => handlePublishNow(post._id || post.id)}
-                        className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                        title="Publish now"
+                        onClick={() => toggleRecurringStatus(schedule._id || schedule.id)}
+                        className={`px-3 py-1 text-sm font-medium rounded-lg transition-colors ${
+                          schedule.active
+                            ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                            : 'bg-green-100 text-green-700 hover:bg-green-200'
+                        }`}
                       >
-                        <Play className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDeletePost(post._id || post.id)}
-                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Delete post"
-                      >
-                        <Trash2 className="w-4 h-4" />
+                        {schedule.active ? 'Pause' : 'Activate'}
                       </button>
                     </div>
                   </div>
-                )}
-              </div>
-              ))
-            )}
-          </div>
-        )}
-
-        {/* Recurring Schedules Tab */}
-        {activeTab === 'recurring' && (
-          <div className="space-y-4">
-            {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
-                <span className="ml-2 text-gray-600">Loading recurring schedules...</span>
-              </div>
-            ) : recurring.length === 0 ? (
-              <div className="text-center py-12">
-                <Clock className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No recurring schedules</h3>
-                <p className="text-gray-600 mb-4">Set up automated content generation to save time.</p>
-                <button
-                  onClick={() => setShowNewRecurring(true)}
-                  className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600"
-                >
-                  Create Your First Schedule
-                </button>
-              </div>
-            ) : (
-              recurring.map((schedule) => (
-              <div key={schedule._id || schedule.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-3">
-                      <h3 className="text-lg font-semibold text-gray-900">{schedule.name}</h3>
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        schedule.active
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-gray-100 text-gray-800'
-                      }`}>
-                        {schedule.active ? 'Active' : 'Paused'}
-                      </span>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4 mb-4">
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">Platform</p>
-                        <p className="text-sm text-gray-600">{schedule.platform}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">Content Type</p>
-                        <p className="text-sm text-gray-600">{schedule.contentType}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">Frequency</p>
-                        <p className="text-sm text-gray-600">{schedule.frequency}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">Next Generation</p>
-                        <p className="text-sm text-gray-600">{formatDate(schedule.nextGeneration)}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center text-sm text-gray-500">
-                      <Clock className="w-4 h-4 mr-1" />
-                      Last generated: {formatDate(schedule.lastGenerated)}
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2 ml-4">
-                    <button
-                      onClick={() => generateScheduledContent(schedule._id || schedule.id)}
-                      disabled={generatingContent || !schedule.active}
-                      className="flex items-center px-3 py-1 text-sm font-medium bg-purple-100 text-purple-700 hover:bg-purple-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors"
-                      title="Generate content now"
-                    >
-                      <Wand2 className="w-4 h-4 mr-1" />
-                      {generatingContent ? 'Generating...' : 'Generate Now'}
-                    </button>
-                    <button className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors">
-                      <Edit className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => toggleRecurringStatus(schedule._id || schedule.id)}
-                      className={`px-3 py-1 text-sm font-medium rounded-lg transition-colors ${
-                        schedule.active
-                          ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                          : 'bg-green-100 text-green-700 hover:bg-green-200'
-                      }`}
-                    >
-                      {schedule.active ? 'Pause' : 'Activate'}
-                    </button>
-                  </div>
                 </div>
-              </div>
-              ))
-            )}
-          </div>
-        )}
-
-        {/* Empty State */}
-        {((activeTab === 'scheduled' && scheduledPosts.length === 0) ||
-          (activeTab === 'recurring' && recurring.length === 0)) && (
-          <div className="text-center py-12">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <CalendarIcon className="w-8 h-8 text-gray-400" />
+                ))
+              )}
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              No {activeTab === 'scheduled' ? 'scheduled posts' : 'recurring schedules'} yet
-            </h3>
-            <p className="text-gray-600 mb-4">
-              {activeTab === 'scheduled'
-                ? 'Schedule your first post to get started'
-                : 'Set up automated content generation schedules'
-              }
-            </p>
-            <button
-              onClick={() => setShowNewSchedule(true)}
-              className="flex items-center px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors mx-auto"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              {activeTab === 'scheduled' ? 'Schedule Post' : 'Create Schedule'}
-            </button>
-          </div>
-        )}
-
-        {/* New Schedule Modal */}
-        {showNewSchedule && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-gray-900">Schedule New Post</h3>
-                <button
-                  onClick={() => setShowNewSchedule(false)}
-                  className="p-2 text-gray-400 hover:text-gray-600"
-                >
-                  <X className="w-4 h-4" />
-                </button>
+          )}
+          {/* Empty State */}
+          {((activeTab === 'scheduled' && scheduledPosts.length === 0) ||
+            (activeTab === 'recurring' && recurring.length === 0)) && (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CalendarIcon className="w-8 h-8 text-gray-400" />
               </div>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Platform</label>
-                  <select
-                    value={newScheduleForm.platform}
-                    onChange={(e) => setNewScheduleForm({ ...newScheduleForm, platform: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  >
-                    <option value="LinkedIn">LinkedIn</option>
-                    <option value="Twitter">Twitter/X</option>
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Content Type</label>
-                  <select
-                    value={newScheduleForm.contentType}
-                    onChange={(e) => setNewScheduleForm({ ...newScheduleForm, contentType: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  >
-                    <option value="manual">Write manually</option>
-                    <option value="ai">Generate with AI</option>
-                  </select>
-                </div>
-                
-                {newScheduleForm.contentType === 'manual' && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Content</label>
-                    <textarea
-                      value={newScheduleForm.content}
-                      onChange={(e) => setNewScheduleForm({ ...newScheduleForm, content: e.target.value })}
-                      rows={4}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="Write your post content..."
-                    />
-                  </div>
-                )}
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Schedule For</label>
-                  <input
-                    type="datetime-local"
-                    value={newScheduleForm.scheduledFor}
-                    onChange={(e) => setNewScheduleForm({ ...newScheduleForm, scheduledFor: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
-              
-              <div className="flex space-x-3 mt-6">
-                <button
-                  onClick={handleCreateSchedule}
-                  disabled={!newScheduleForm.scheduledFor || (newScheduleForm.contentType === 'manual' && !newScheduleForm.content)}
-                  className="flex-1 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Schedule Post
-                </button>
-                <button
-                  onClick={() => setShowNewSchedule(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                No {activeTab === 'scheduled' ? 'scheduled posts' : 'recurring schedules'} yet
+              </h3>
+              <p className="text-gray-600 mb-4">
+                {activeTab === 'scheduled'
+                  ? 'Schedule your first post to get started'
+                  : 'Set up automated content generation schedules'
+                }
+              </p>
+              <button
+                onClick={() => setShowNewSchedule(true)}
+                className="flex items-center px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors mx-auto"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                {activeTab === 'scheduled' ? 'Schedule Post' : 'Create Schedule'}
+              </button>
             </div>
-          </div>
-        )}
-
-        {/* New Recurring Schedule Modal */}
-        {showNewRecurring && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-gray-900">Create Recurring Schedule</h3>
-                <button
-                  onClick={() => setShowNewRecurring(false)}
-                  className="p-2 text-gray-400 hover:text-gray-600"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Schedule Name</label>
-                  <input
-                    type="text"
-                    value={newRecurringForm.name}
-                    onChange={(e) => setNewRecurringForm({ ...newRecurringForm, name: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder="e.g., Weekly Insights"
-                  />
+          )}
+          {/* New Schedule Modal */}
+          {showNewSchedule && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900">Schedule New Post</h3>
+                  <button
+                    onClick={() => setShowNewSchedule(false)}
+                    className="p-2 text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
                 </div>
-                
-                <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Platform</label>
                     <select
-                      value={newRecurringForm.platform}
-                      onChange={(e) => setNewRecurringForm({ ...newRecurringForm, platform: e.target.value })}
+                      value={newScheduleForm.platform}
+                      onChange={(e) => setNewScheduleForm({ ...newScheduleForm, platform: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     >
                       <option value="LinkedIn">LinkedIn</option>
                       <option value="Twitter">Twitter/X</option>
                     </select>
                   </div>
-                  
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Content Type</label>
                     <select
-                      value={newRecurringForm.contentType}
-                      onChange={(e) => setNewRecurringForm({ ...newRecurringForm, contentType: e.target.value })}
+                      value={newScheduleForm.contentType}
+                      onChange={(e) => setNewScheduleForm({ ...newScheduleForm, contentType: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     >
-                      <option value="Thought Leadership">Thought Leadership</option>
-                      <option value="Company Updates">Company Updates</option>
-                      <option value="Industry Commentary">Industry Commentary</option>
-                      <option value="Personal Stories">Personal Stories</option>
+                      <option value="manual">Write manually</option>
+                      <option value="ai">Generate with AI</option>
                     </select>
                   </div>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
+                  {newScheduleForm.contentType === 'manual' && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Content</label>
+                      <textarea
+                        value={newScheduleForm.content}
+                        onChange={(e) => setNewScheduleForm({ ...newScheduleForm, content: e.target.value })}
+                        rows={4}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        placeholder="Write your post content..."
+                      />
+                    </div>
+                  )}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Day</label>
-                    <select
-                      value={newRecurringForm.dayOfWeek}
-                      onChange={(e) => setNewRecurringForm({ ...newRecurringForm, dayOfWeek: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    >
-                      <option value="monday">Monday</option>
-                      <option value="tuesday">Tuesday</option>
-                      <option value="wednesday">Wednesday</option>
-                      <option value="thursday">Thursday</option>
-                      <option value="friday">Friday</option>
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Time</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Schedule For</label>
                     <input
-                      type="time"
-                      value={newRecurringForm.time}
-                      onChange={(e) => setNewRecurringForm({ ...newRecurringForm, time: e.target.value })}
+                      type="datetime-local"
+                      value={newScheduleForm.scheduledFor}
+                      onChange={(e) => setNewScheduleForm({ ...newScheduleForm, scheduledFor: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     />
                   </div>
                 </div>
-              </div>
-              
-              <div className="flex space-x-3 mt-6">
-                <button
-                  onClick={handleCreateRecurring}
-                  disabled={!newRecurringForm.name}
-                  className="flex-1 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Create Schedule
-                </button>
-                <button
-                  onClick={() => setShowNewRecurring(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
+                <div className="flex space-x-3 mt-6">
+                  <button
+                    onClick={handleCreateSchedule}
+                    disabled={!newScheduleForm.scheduledFor || (newScheduleForm.contentType === 'manual' && !newScheduleForm.content)}
+                    className="flex-1 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Schedule Post
+                  </button>
+                  <button
+                    onClick={() => setShowNewSchedule(false)}
+                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+          {/* New Recurring Schedule Modal */}
+          {showNewRecurring && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900">Create Recurring Schedule</h3>
+                  <button
+                    onClick={() => setShowNewRecurring(false)}
+                    className="p-2 text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Schedule Name</label>
+                    <input
+                      type="text"
+                      value={newRecurringForm.name}
+                      onChange={(e) => setNewRecurringForm({ ...newRecurringForm, name: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      placeholder="e.g., Weekly Insights"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Platform</label>
+                      <select
+                        value={newRecurringForm.platform}
+                        onChange={(e) => setNewRecurringForm({ ...newRecurringForm, platform: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      >
+                        <option value="LinkedIn">LinkedIn</option>
+                        <option value="Twitter">Twitter/X</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Content Type</label>
+                      <select
+                        value={newRecurringForm.contentType}
+                        onChange={(e) => setNewRecurringForm({ ...newRecurringForm, contentType: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      >
+                        <option value="Thought Leadership">Thought Leadership</option>
+                        <option value="Company Updates">Company Updates</option>
+                        <option value="Industry Commentary">Industry Commentary</option>
+                        <option value="Personal Stories">Personal Stories</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Day</label>
+                      <select
+                        value={newRecurringForm.dayOfWeek}
+                        onChange={(e) => setNewRecurringForm({ ...newRecurringForm, dayOfWeek: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      >
+                        <option value="monday">Monday</option>
+                        <option value="tuesday">Tuesday</option>
+                        <option value="wednesday">Wednesday</option>
+                        <option value="thursday">Thursday</option>
+                        <option value="friday">Friday</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Time</label>
+                      <input
+                        type="time"
+                        value={newRecurringForm.time}
+                        onChange={(e) => setNewRecurringForm({ ...newRecurringForm, time: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="flex space-x-3 mt-6">
+                  <button
+                    onClick={handleCreateRecurring}
+                    disabled={!newRecurringForm.name}
+                    className="flex-1 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Create Schedule
+                  </button>
+                  <button
+                    onClick={() => setShowNewRecurring(false)}
+                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </main>
     </div>
   );
 }

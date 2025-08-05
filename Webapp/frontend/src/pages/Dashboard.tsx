@@ -1,4 +1,19 @@
 import React, { useState, useEffect } from 'react';
+
+// 50 AI Insights options
+const AI_INSIGHTS_OPTIONS = [];
+for (let i = 1; i <= 50; i++) {
+  AI_INSIGHTS_OPTIONS.push({
+    title: `AI Insight #${i}`,
+    text: `This is a dynamic AI insight suggestion number ${i}. Try this tip for better engagement!`
+  });
+}
+
+function getRandomAIInsights() {
+  // Shuffle and pick 3 random insights for display
+  const shuffled = [...AI_INSIGHTS_OPTIONS].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, 3);
+}
 import { TrendingUp, Calendar, FileText, MessageSquare, Clock, Target, Sparkles, Brain } from 'lucide-react';
 import api from '../api';
 
@@ -7,20 +22,11 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ user }: DashboardProps) {
-  const [aiInsights, setAiInsights] = useState<any>(null);
-  const [loadingInsights, setLoadingInsights] = useState(false);
-  const [recentDrafts, setRecentDrafts] = useState<any[]>([]);
-  const [scheduledPosts, setScheduledPosts] = useState<any[]>([]);
-  const [contentStats, setContentStats] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
   useEffect(() => {
-    if (user) {
-      fetchDashboardData();
-    }
-  }, [user]);
+    fetchDashboardData();
+  }, []);
 
-  const fetchDashboardData = async () => {
+  async function fetchDashboardData() {
     setLoading(true);
     try {
       const [insightsRes, draftsRes, scheduledRes, statsRes] = await Promise.all([
@@ -33,15 +39,12 @@ export default function Dashboard({ user }: DashboardProps) {
       if (insightsRes.data.success) {
         setAiInsights(insightsRes.data.boosters);
       }
-
       if (draftsRes.data.success) {
         setRecentDrafts(draftsRes.data.drafts);
       }
-
       if (scheduledRes.data.success) {
         setScheduledPosts(scheduledRes.data.posts);
       }
-
       if (statsRes.data.success) {
         setContentStats(statsRes.data.stats);
       }
@@ -50,7 +53,15 @@ export default function Dashboard({ user }: DashboardProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }
+  const [aiInsights, setAiInsights] = useState<any>(null);
+  const [loadingInsights, setLoadingInsights] = useState(false);
+  const [recentDrafts, setRecentDrafts] = useState<any[]>([]);
+  const [scheduledPosts, setScheduledPosts] = useState<any[]>([]);
+  const [contentStats, setContentStats] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  // ...existing code...
 
   const fetchAIInsights = async () => {
     setLoadingInsights(true);
@@ -237,48 +248,7 @@ export default function Dashboard({ user }: DashboardProps) {
             </div>
           </div>
 
-          {/* Quick Actions */}
-          <div className="space-y-6">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-              <div className="space-y-3">
-                <button className="w-full flex items-center p-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all">
-                  <MessageSquare className="w-5 h-5 mr-3" />
-                  Start AI Chat
-                </button>
-                <button className="w-full flex items-center p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                  <Calendar className="w-5 h-5 mr-3 text-gray-600" />
-                  Schedule Content
-                </button>
-                <button className="w-full flex items-center p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                  <FileText className="w-5 h-5 mr-3 text-gray-600" />
-                  Browse Templates
-                </button>
-              </div>
-            </div>
-
-            {/* AI Insights */}
-            <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl p-6 border border-purple-200">
-              <div className="flex items-center mb-4">
-                <Target className="w-6 h-6 text-purple-600 mr-2" />
-                <h3 className="text-lg font-semibold text-gray-900">AI Insights</h3>
-              </div>
-              <div className="space-y-3">
-                <div className="bg-white rounded-lg p-3 border border-purple-200">
-                  <p className="text-sm font-medium text-gray-900">Best Posting Time</p>
-                  <p className="text-sm text-gray-600">Tuesday 9-10 AM shows 40% higher engagement</p>
-                </div>
-                <div className="bg-white rounded-lg p-3 border border-purple-200">
-                  <p className="text-sm font-medium text-gray-900">Trending Topics</p>
-                  <p className="text-sm text-gray-600">AI tools, remote work, productivity tips</p>
-                </div>
-                <div className="bg-white rounded-lg p-3 border border-purple-200">
-                  <p className="text-sm font-medium text-gray-900">Content Suggestion</p>
-                  <p className="text-sm text-gray-600">Share your latest product milestone</p>
-                </div>
-              </div>
-            </div>
-          </div>
+          {/* ...existing code... */}
         </div>
       </div>
     </div>
