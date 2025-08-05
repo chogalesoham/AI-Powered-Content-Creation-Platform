@@ -1,0 +1,9 @@
+# For serving the API
+fastapi
+uvicorn[standard]
+
+# For AI/ML
+google-generativeai
+sentence-transformers
+scikit-learn
+numpy
