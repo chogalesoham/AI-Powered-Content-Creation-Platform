@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ChatBot from '../components/ChatBot';
 
 // 50 AI Insights options
 const AI_INSIGHTS_OPTIONS = [];
@@ -251,6 +252,9 @@ export default function Dashboard({ user }: DashboardProps) {
           {/* ...existing code... */}
         </div>
       </div>
+
+      {/* Chatbot */}
+      <ChatBot />
     </div>
   );
 }
