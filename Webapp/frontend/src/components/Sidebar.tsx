@@ -12,6 +12,7 @@ import {
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
+  { name: 'Tone Analysis', href: '/tone-analysis', icon: BarChart3 },
   { name: 'AI Chat', href: '/chat', icon: MessageSquare },
   { name: 'Templates', href: '/templates', icon: FileText },
   { name: 'Schedule', href: '/schedule', icon: Calendar },
@@ -21,7 +22,7 @@ const navigation = [
 
 export default function Sidebar() {
   return (
-    <div className="w-64 bg-white shadow-lg border-r border-gray-200">
+    <div className="w-64 bg-white shadow-lg border-r border-gray-200 h-screen fixed top-0 left-0">
       <div className="p-6">
         <div className="flex items-center space-x-2">
           <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
@@ -36,7 +37,7 @@ export default function Sidebar() {
           {navigation.map((item) => (
             <li key={item.name}>
               <NavLink
-                to={item.href}
+                to={item.name === 'AI Chat' ? '/post-generation-ai' : item.href}
                 className={({ isActive }) =>
                   `flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                     isActive
@@ -46,7 +47,7 @@ export default function Sidebar() {
                 }
               >
                 <item.icon className="w-5 h-5 mr-3" />
-                {item.name}
+                {item.name === 'AI Chat' ? 'Post Generation AI' : item.name}
               </NavLink>
             </li>
           ))}
