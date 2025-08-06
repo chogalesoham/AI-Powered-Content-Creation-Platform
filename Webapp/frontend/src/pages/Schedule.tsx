@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import axios from "axios";
 import {
   Calendar as CalendarIcon,
   Clock,
@@ -13,6 +14,8 @@ import {
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import api from "../api";
+
+import data from "../../../../AI/DheerajTSEC/Schedule/final.json";
 
 const scheduledPosts = [
   {
@@ -88,9 +91,10 @@ const recurringSchedules = [
 
 export default function Schedule() {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<"scheduled" | "recurring">(
-    "scheduled"
-  );
+  const [activeTab, setActiveTab] = useState<
+    "scheduled" | "recurring" | "drafts"
+  >("scheduled");
+  const [drafts, setDrafts] = useState<any[]>([]);
   const [showNewSchedule, setShowNewSchedule] = useState(false);
   const [showNewRecurring, setShowNewRecurring] = useState(false);
   const [posts, setPosts] = useState<any[]>([]);
@@ -138,6 +142,8 @@ export default function Schedule() {
   } | null>(null);
 
   const [loadingPredictions, setLoadingPredictions] = useState(false);
+  const [schedulingPost, setSchedulingPost] = useState(false);
+  const [scheduleSuccess, setScheduleSuccess] = useState(false);
   const [newRecurringForm, setNewRecurringForm] = useState({
     name: "",
     platform: "LinkedIn",
@@ -244,10 +250,75 @@ export default function Schedule() {
     }
   };
 
+  // Function to load drafts from final.json
+  const loadDrafts = async () => {
+    try {
+      // Try multiple paths to find the final.json file
+      const paths = [
+        "/AI/DheerajTSEC/Schedule/final.json",
+        "/final.json",
+        "../AI/DheerajTSEC/Schedule/final.json",
+        "../../AI/DheerajTSEC/Schedule/final.json",
+        "/api/drafts", // In case we need to set up a proxy endpoint
+      ];
+
+      let loaded = false;
+      const sampleData = data;
+      for (const path of paths) {
+        if (loaded) break;
+        try {
+          const response = await axios.get(path);
+          // Ensure response.data is an array
+          if (Array.isArray(response.data)) {
+            console.log(`Successfully loaded drafts from ${path}`);
+            if (response.data.length > 0) {
+              setDrafts(response.data);
+            } else {
+              setDrafts(sampleData);
+            }
+            loaded = true;
+            break;
+          } else if (response.data && Array.isArray(response.data.drafts)) {
+            // Some APIs may return { drafts: [...] }
+            if (response.data.drafts.length > 0) {
+              setDrafts(response.data.drafts);
+            } else {
+              setDrafts(sampleData);
+            }
+            loaded = true;
+            break;
+          }
+        } catch (pathError) {
+          let errorMsg = "";
+          if (
+            typeof pathError === "object" &&
+            pathError !== null &&
+            "message" in pathError
+          ) {
+            errorMsg = (pathError as any).message;
+          } else {
+            errorMsg = String(pathError);
+          }
+          console.log(`Failed to load from ${path}:`, errorMsg);
+          // Continue to next path
+        }
+      }
+      if (!loaded) {
+        setDrafts(sampleData);
+      }
+    } catch (error) {
+      console.error("Error in loadDrafts function:", error);
+      setDrafts([]); // Ensure drafts is always an array on error
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Load data on component mount
   useEffect(() => {
     loadScheduledPosts();
     loadRecurringSchedules();
+    loadDrafts();
 
     // Check if there's data from ContentChat to pre-populate the schedule modal
     const storedScheduleData = sessionStorage.getItem("schedulePostData");
@@ -355,31 +426,159 @@ export default function Schedule() {
     }
   };
 
-  const handleCreateSchedule = async () => {
-    try {
-      const response = await api.post("/schedule/posts", {
-        platform: newScheduleForm.platform,
-        content: newScheduleForm.content,
-        scheduledFor: newScheduleForm.scheduledFor,
-        contentType:
-          newScheduleForm.contentType === "manual"
-            ? "Personal"
-            : newScheduleForm.contentType,
-      });
+  // Helper function to format date for the API
+  const formatDateForAPI = (dateString: string) => {
+    const date = new Date(dateString);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+      2,
+      "0"
+    )}-${String(date.getDate()).padStart(2, "0")} ${String(
+      date.getHours()
+    ).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}:00`;
+  };
 
-      if (response.data.success) {
-        setPosts([...posts, response.data.post]);
-        setShowNewSchedule(false);
-        setNewScheduleForm({
-          platform: "LinkedIn",
-          content: "",
-          scheduledFor: "",
-          contentType: "manual",
+  const handleCreateSchedule = async () => {
+    setSchedulingPost(true);
+    try {
+      // If we have AI generated content from schedulePostData
+      if (schedulePostData && newScheduleForm.scheduledFor) {
+        // Determine which platform content to use based on the selected platform
+        const content =
+          newScheduleForm.platform === "LinkedIn"
+            ? schedulePostData.linkedin_post
+            : schedulePostData.twitter_post;
+
+        // Format the date for the API
+        const formattedDate = formatDateForAPI(newScheduleForm.scheduledFor);
+
+        // Prepare the payload for the schedule_post API using the exact format required
+        const payload = {
+          identified_style: {
+            niche: schedulePostData.identified_style?.niche || "Technology",
+            tone: schedulePostData.identified_style?.tone || "Professional",
+            writing_style:
+              schedulePostData.identified_style?.writing_style || "Informative",
+          },
+          scheduled_time: formattedDate,
+          prompt_idea: schedulePostData.topic,
+        };
+
+        // Call the schedule_post API directly
+        const response = await fetch("http://127.0.0.1:5003/schedule_post", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
         });
+
+        if (response.ok) {
+          const result = await response.json();
+          console.log("Post scheduled successfully:", result);
+
+          // Create a post object to add to the state
+          const newPost = {
+            id: Date.now(), // Temporary ID
+            platform: newScheduleForm.platform,
+            content: content,
+            scheduledFor: new Date(newScheduleForm.scheduledFor),
+            status: "scheduled",
+            autoGenerated: true,
+          };
+
+          // Add the new post to the posts state
+          setPosts([...posts, newPost]);
+
+          // Show success message
+          setScheduleSuccess(true);
+
+          // Hide success message after 3 seconds
+          setTimeout(() => {
+            setScheduleSuccess(false);
+          }, 3000);
+
+          // Reset the form and close the modal
+          setShowNewSchedule(false);
+          setSchedulePostData(null);
+          setNewScheduleForm({
+            platform: "LinkedIn",
+            content: "",
+            scheduledFor: "",
+            contentType: "manual",
+          });
+        }
+      } else {
+        // Regular post scheduling (no AI content)
+        // Format the date for the API
+        const formattedDate = formatDateForAPI(newScheduleForm.scheduledFor);
+
+        // For regular posts, we'll create a simple prompt idea based on the content
+        const promptIdea =
+          newScheduleForm.content.substring(0, 50) +
+          (newScheduleForm.content.length > 50 ? "..." : "");
+
+        // Prepare the payload for the schedule_post API using the exact format required
+        const payload = {
+          identified_style: {
+            niche: "Technology", // Default niche for manual posts
+            tone: "Professional", // Default tone for manual posts
+            writing_style: "Informative", // Default writing style for manual posts
+          },
+          scheduled_time: formattedDate,
+          prompt_idea: promptIdea,
+        };
+
+        // Call the schedule_post API directly
+        const response = await fetch("http://127.0.0.1:5003/schedule_post", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          console.log("Post scheduled successfully:", result);
+
+          // Create a post object to add to the state
+          const newPost = {
+            id: Date.now(), // Temporary ID
+            platform: newScheduleForm.platform,
+            content: newScheduleForm.content,
+            scheduledFor: new Date(newScheduleForm.scheduledFor),
+            status: "scheduled",
+            autoGenerated: false,
+            contentType:
+              newScheduleForm.contentType === "manual"
+                ? "Personal"
+                : newScheduleForm.contentType,
+          };
+
+          setPosts([...posts, newPost]);
+
+          // Show success message
+          setScheduleSuccess(true);
+
+          // Hide success message after 3 seconds
+          setTimeout(() => {
+            setScheduleSuccess(false);
+          }, 3000);
+
+          setShowNewSchedule(false);
+          setNewScheduleForm({
+            platform: "LinkedIn",
+            content: "",
+            scheduledFor: "",
+            contentType: "manual",
+          });
+        }
       }
     } catch (error) {
       console.error("Failed to create scheduled post:", error);
       // You could add a toast notification here
+    } finally {
+      setSchedulingPost(false);
     }
   };
 
@@ -475,7 +674,26 @@ export default function Schedule() {
     }
   };
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-gray-50 relative">
+      {/* Success Notification */}
+      {scheduleSuccess && (
+        <div className="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center transition-opacity duration-300 ease-in-out">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5 mr-2"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fillRule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+              clipRule="evenodd"
+            />
+          </svg>
+          Post scheduled successfully!
+        </div>
+      )}
+
       <main className="flex-1 overflow-auto">
         {/* ...existing code... */}
         <div className="p-8">
@@ -510,14 +728,21 @@ export default function Schedule() {
               Scheduled Posts
             </button>
             <button
-              onClick={() => setActiveTab("recurring")}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 activeTab === "recurring"
                   ? "bg-white text-gray-900 shadow-sm"
                   : "text-gray-600 hover:text-gray-900"
               }`}
+            ></button>
+            <button
+              onClick={() => setActiveTab("drafts")}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === "drafts"
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
             >
-              Recurring Schedules
+              Content Drafts
             </button>
           </div>
           {/* Scheduled Posts Tab */}
@@ -776,9 +1001,99 @@ export default function Schedule() {
               )}
             </div>
           )}
+
+          {/* Content Drafts Tab */}
+          {activeTab === "drafts" && (
+            <div className="space-y-4">
+              {loading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
+                  <span className="ml-2 text-gray-600">
+                    Loading content drafts...
+                  </span>
+                </div>
+              ) : drafts.length === 0 ? (
+                <div className="text-center py-12">
+                  <Sparkles className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    No content drafts
+                  </h3>
+                  <p className="text-gray-600 mb-4">
+                    Generate content with AI to see drafts here.
+                  </p>
+                </div>
+              ) : (
+                drafts.map((draft, index) => (
+                  <div
+                    key={index}
+                    className="bg-white rounded-xl shadow-sm border border-gray-200 p-6"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-3">
+                          <h3 className="text-lg font-semibold text-gray-900">
+                            {draft.original_prompt_idea || "AI Generated Draft"}
+                          </h3>
+                          <span className="px-2 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-800">
+                            Draft
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-4 mb-4">
+                          <div>
+                            <p className="text-sm font-medium text-gray-700">
+                              Niche
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              {draft.original_style?.niche || "Not specified"}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-700">
+                              Tone
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              {draft.original_style?.tone || "Not specified"}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-700">
+                              Writing Style
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              {draft.original_style?.writing_style ||
+                                "Not specified"}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="mb-4">
+                          <p className="text-sm font-medium text-gray-700 mb-2">
+                            Generated Content
+                          </p>
+                          <div className="bg-gray-50 p-4 rounded-lg text-sm text-gray-800 whitespace-pre-wrap">
+                            {draft.generated_draft}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center text-sm text-gray-500">
+                          <Clock className="w-4 h-4 mr-1" />
+                          Generated on:{" "}
+                          {new Date(
+                            draft.generation_timestamp
+                          ).toLocaleString()}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
           {/* Empty State */}
           {((activeTab === "scheduled" && scheduledPosts.length === 0) ||
-            (activeTab === "recurring" && recurring.length === 0)) && (
+            (activeTab === "recurring" && recurring.length === 0) ||
+            (activeTab === "drafts" && drafts.length === 0)) && (
             <div className="text-center py-12">
               <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CalendarIcon className="w-8 h-8 text-gray-400" />
@@ -787,23 +1102,29 @@ export default function Schedule() {
                 No{" "}
                 {activeTab === "scheduled"
                   ? "scheduled posts"
-                  : "recurring schedules"}{" "}
+                  : activeTab === "recurring"
+                  ? "recurring schedules"
+                  : "content drafts"}{" "}
                 yet
               </h3>
               <p className="text-gray-600 mb-4">
                 {activeTab === "scheduled"
                   ? "Schedule your first post to get started"
-                  : "Set up automated content generation schedules"}
+                  : activeTab === "recurring"
+                  ? "Set up automated content generation schedules"
+                  : "Generate content with AI to see drafts here"}
               </p>
-              <button
-                onClick={() => setShowNewSchedule(true)}
-                className="flex items-center px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors mx-auto"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                {activeTab === "scheduled"
-                  ? "Schedule Post"
-                  : "Create Schedule"}
-              </button>
+              {activeTab !== "drafts" ? (
+                <button
+                  onClick={() => setShowNewSchedule(true)}
+                  className="flex items-center px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors mx-auto"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  {activeTab === "scheduled"
+                    ? "Schedule Post"
+                    : "Create Schedule"}
+                </button>
+              ) : null}
             </div>
           )}
           {/* New Schedule Modal */}
@@ -862,10 +1183,19 @@ export default function Schedule() {
                           </h4>
                           <button
                             onClick={() => {
+                              // Set the current date and time as default
+                              const now = new Date();
+                              // Add 1 hour to current time
+                              now.setHours(now.getHours() + 1);
+                              // Format for datetime-local input
+                              const formattedDate = now
+                                .toISOString()
+                                .slice(0, 16);
+
                               setNewScheduleForm({
                                 platform: "LinkedIn",
                                 content: schedulePostData.linkedin_post,
-                                scheduledFor: "",
+                                scheduledFor: formattedDate,
                                 contentType: "manual",
                               });
                             }}
@@ -950,10 +1280,19 @@ export default function Schedule() {
                           </h4>
                           <button
                             onClick={() => {
+                              // Set the current date and time as default
+                              const now = new Date();
+                              // Add 1 hour to current time
+                              now.setHours(now.getHours() + 1);
+                              // Format for datetime-local input
+                              const formattedDate = now
+                                .toISOString()
+                                .slice(0, 16);
+
                               setNewScheduleForm({
                                 platform: "Twitter",
                                 content: schedulePostData.twitter_post,
-                                scheduledFor: "",
+                                scheduledFor: formattedDate,
                                 contentType: "manual",
                               });
                             }}
@@ -1113,13 +1452,21 @@ export default function Schedule() {
                   <button
                     onClick={handleCreateSchedule}
                     disabled={
+                      schedulingPost ||
                       !newScheduleForm.scheduledFor ||
                       (newScheduleForm.contentType === "manual" &&
                         !newScheduleForm.content)
                     }
-                    className="flex-1 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                   >
-                    Schedule Post
+                    {schedulingPost ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Scheduling...
+                      </>
+                    ) : (
+                      "Schedule Post"
+                    )}
                   </button>
                   <button
                     onClick={() => {
