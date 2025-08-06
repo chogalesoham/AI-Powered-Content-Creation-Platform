@@ -3,8 +3,10 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import ConnectionTest from './components/ConnectionTest';
 import Sidebar from './components/Sidebar';
+import PageTransition from './components/PageTransition';
 import Dashboard from './pages/Dashboard';
-import ContentChat from './pages/ContentChat';
+import ToneAnalysis from './pages/ToneAnalysis';
+import PostGenerationAI from './pages/PostGenerationAI';
 import Templates from './pages/Templates';
 import Schedule from './pages/Schedule';
 import Analytics from './pages/Analytics';
@@ -50,10 +52,11 @@ function AppLayout() {
   return (
     <div className="flex h-full bg-gray-50">
       <Sidebar />
-      <main className="flex-1 overflow-hidden">
+      <main className="flex-1 overflow-hidden ml-64">
         <Routes>
-          <Route path="/" element={<Dashboard user={user} />} />
-          <Route path="/chat" element={<ContentChat user={user} />} />
+          <Route path="/" element={<PageTransition><Dashboard user={user} /></PageTransition>} />
+          <Route path="/tone-analysis" element={<ToneAnalysis />} />
+          <Route path="/post-generation-ai" element={<PostGenerationAI user={user} />} />
           <Route path="/templates" element={<Templates />} />
           <Route path="/schedule" element={<Schedule />} />
           <Route path="/analytics" element={<Analytics />} />

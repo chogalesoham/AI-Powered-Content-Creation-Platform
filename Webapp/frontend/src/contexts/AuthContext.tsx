@@ -94,10 +94,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signup = async (name: string, email: string, password: string) => {
     try {
       const response = await api.post('/auth/register', { name, email, password });
-      
+
       if (response.data.success) {
-        localStorage.setItem('token', response.data.token);
-        setUser(response.data.user);
+        // Don't automatically log in the user after signup
+        // Just return success - user will need to login manually
+        return response.data;
       } else {
         throw new Error(response.data.error || 'Signup failed');
       }
