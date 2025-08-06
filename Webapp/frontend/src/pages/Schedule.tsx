@@ -109,7 +109,35 @@ export default function Schedule() {
     twitter_post: string;
     topic: string;
     identified_style: any;
+    engagement_predictions?: {
+      linkedin?: {
+        lightgbm_prediction?: {
+          predicted_likes: number;
+          predicted_comments: number;
+          predicted_impressions: number;
+        };
+        xgboost_prediction?: {
+          predicted_likes: number;
+          predicted_comments: number;
+          predicted_impressions: number;
+        };
+      };
+      twitter?: {
+        lightgbm_prediction?: {
+          predicted_likes: number;
+          predicted_comments: number;
+          predicted_impressions: number;
+        };
+        xgboost_prediction?: {
+          predicted_likes: number;
+          predicted_comments: number;
+          predicted_impressions: number;
+        };
+      };
+    };
   } | null>(null);
+
+  const [loadingPredictions, setLoadingPredictions] = useState(false);
   const [newRecurringForm, setNewRecurringForm] = useState({
     name: "",
     platform: "LinkedIn",
@@ -151,6 +179,71 @@ export default function Schedule() {
     }
   };
 
+  // Function to fetch engagement predictions
+  const fetchEngagementPredictions = async (postData: any) => {
+    setLoadingPredictions(true);
+    try {
+      // Create a timestamp for today + 1 month (similar to the example)
+      const futureDate = new Date();
+      futureDate.setMonth(futureDate.getMonth() + 1);
+      const timestamp = futureDate.toISOString();
+
+      // Fetch LinkedIn prediction
+      const linkedinResponse = await fetch(
+        "http://127.0.0.1:5001/predict_engagement",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            text: postData.linkedin_post,
+            platform: "LinkedIn",
+            timestamp: timestamp,
+          }),
+        }
+      );
+
+      // Fetch Twitter prediction
+      const twitterResponse = await fetch(
+        "http://127.0.0.1:5001/predict_engagement",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            text: postData.twitter_post,
+            platform: "Twitter",
+            timestamp: timestamp,
+          }),
+        }
+      );
+
+      if (linkedinResponse.ok && twitterResponse.ok) {
+        const linkedinData = await linkedinResponse.json();
+        const twitterData = await twitterResponse.json();
+
+        return {
+          linkedin: linkedinData,
+          twitter: twitterData,
+        };
+      } else {
+        console.error(
+          "Error fetching predictions:",
+          linkedinResponse.ok ? "" : await linkedinResponse.text(),
+          twitterResponse.ok ? "" : await twitterResponse.text()
+        );
+        return null;
+      }
+    } catch (error) {
+      console.error("Error fetching engagement predictions:", error);
+      return null;
+    } finally {
+      setLoadingPredictions(false);
+    }
+  };
+
   // Load data on component mount
   useEffect(() => {
     loadScheduledPosts();
@@ -169,6 +262,17 @@ export default function Schedule() {
           contentType: "manual",
         });
         setShowNewSchedule(true);
+
+        // Fetch engagement predictions
+        fetchEngagementPredictions(data).then((predictions) => {
+          if (predictions) {
+            setSchedulePostData((prevData) => ({
+              ...prevData!,
+              engagement_predictions: predictions,
+            }));
+          }
+        });
+
         // Clear the data from sessionStorage
         sessionStorage.removeItem("schedulePostData");
       } catch (error) {
@@ -539,34 +643,6 @@ export default function Schedule() {
                             Scheduled for {formatDate(post.scheduledFor)}
                           </div>
                         </div>
-
-                        <div className="flex items-center space-x-2 ml-4">
-                          <button
-                            onClick={() => setEditingPost(post)}
-                            className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-                            title="Edit post"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() =>
-                              handlePublishNow(post._id || post.id)
-                            }
-                            className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                            title="Publish now"
-                          >
-                            <Play className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() =>
-                              handleDeletePost(post._id || post.id)
-                            }
-                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Delete post"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
                       </div>
                     )}
                   </div>
@@ -804,6 +880,65 @@ export default function Schedule() {
                           rows={4}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700"
                         />
+
+                        {/* LinkedIn Engagement Predictions */}
+                        <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                          <h5 className="text-sm font-medium text-gray-700 mb-2">
+                            Engagement Prediction
+                          </h5>
+                          {loadingPredictions ? (
+                            <div className="flex justify-center items-center py-4">
+                              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                              <span className="ml-2 text-sm text-gray-600">
+                                Calculating engagement...
+                              </span>
+                            </div>
+                          ) : schedulePostData.engagement_predictions?.linkedin
+                              ?.xgboost_prediction ? (
+                            <div className="grid grid-cols-3 gap-2">
+                              <div className="flex flex-col items-center p-2 bg-white rounded border border-gray-200">
+                                <span className="text-xs text-gray-500">
+                                  Likes
+                                </span>
+                                <span className="text-lg font-semibold text-blue-600">
+                                  {
+                                    schedulePostData.engagement_predictions
+                                      .linkedin.xgboost_prediction
+                                      .predicted_likes
+                                  }
+                                </span>
+                              </div>
+                              <div className="flex flex-col items-center p-2 bg-white rounded border border-gray-200">
+                                <span className="text-xs text-gray-500">
+                                  Comments
+                                </span>
+                                <span className="text-lg font-semibold text-blue-600">
+                                  {
+                                    schedulePostData.engagement_predictions
+                                      .linkedin.xgboost_prediction
+                                      .predicted_comments
+                                  }
+                                </span>
+                              </div>
+                              <div className="flex flex-col items-center p-2 bg-white rounded border border-gray-200">
+                                <span className="text-xs text-gray-500">
+                                  Impressions
+                                </span>
+                                <span className="text-lg font-semibold text-blue-600">
+                                  {
+                                    schedulePostData.engagement_predictions
+                                      .linkedin.xgboost_prediction
+                                      .predicted_impressions
+                                  }
+                                </span>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="text-center py-2 text-sm text-gray-500">
+                              Unable to calculate engagement predictions.
+                            </div>
+                          )}
+                        </div>
                       </div>
 
                       {/* Twitter Post */}
@@ -833,6 +968,65 @@ export default function Schedule() {
                           rows={4}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700"
                         />
+
+                        {/* Twitter Engagement Predictions */}
+                        <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                          <h5 className="text-sm font-medium text-gray-700 mb-2">
+                            Engagement Prediction
+                          </h5>
+                          {loadingPredictions ? (
+                            <div className="flex justify-center items-center py-4">
+                              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                              <span className="ml-2 text-sm text-gray-600">
+                                Calculating engagement...
+                              </span>
+                            </div>
+                          ) : schedulePostData.engagement_predictions?.twitter
+                              ?.xgboost_prediction ? (
+                            <div className="grid grid-cols-3 gap-2">
+                              <div className="flex flex-col items-center p-2 bg-white rounded border border-gray-200">
+                                <span className="text-xs text-gray-500">
+                                  Likes
+                                </span>
+                                <span className="text-lg font-semibold text-blue-600">
+                                  {
+                                    schedulePostData.engagement_predictions
+                                      .twitter.xgboost_prediction
+                                      .predicted_likes
+                                  }
+                                </span>
+                              </div>
+                              <div className="flex flex-col items-center p-2 bg-white rounded border border-gray-200">
+                                <span className="text-xs text-gray-500">
+                                  Comments
+                                </span>
+                                <span className="text-lg font-semibold text-blue-600">
+                                  {
+                                    schedulePostData.engagement_predictions
+                                      .twitter.xgboost_prediction
+                                      .predicted_comments
+                                  }
+                                </span>
+                              </div>
+                              <div className="flex flex-col items-center p-2 bg-white rounded border border-gray-200">
+                                <span className="text-xs text-gray-500">
+                                  Impressions
+                                </span>
+                                <span className="text-lg font-semibold text-blue-600">
+                                  {
+                                    schedulePostData.engagement_predictions
+                                      .twitter.xgboost_prediction
+                                      .predicted_impressions
+                                  }
+                                </span>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="text-center py-2 text-sm text-gray-500">
+                              Unable to calculate engagement predictions.
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </>
                   ) : (
