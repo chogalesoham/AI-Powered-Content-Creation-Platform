@@ -584,6 +584,86 @@
   animation: metricPop 0.4s ease-out;
 }
 
+/* Connecting Lines Animation */
+@keyframes drawLine {
+  0% {
+    stroke-dashoffset: 1000;
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0.3;
+  }
+}
+
+@keyframes connectNodes {
+  0%, 100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+@keyframes nodeFloat {
+  0%, 100% {
+    transform: translateY(0px) translateX(0px);
+  }
+  25% {
+    transform: translateY(-10px) translateX(5px);
+  }
+  50% {
+    transform: translateY(0px) translateX(-5px);
+  }
+  75% {
+    transform: translateY(10px) translateX(5px);
+  }
+}
+
+.animate-draw-line {
+  animation: drawLine 3s ease-in-out infinite;
+}
+
+.animate-connect-nodes {
+  animation: connectNodes 4s ease-in-out infinite;
+}
+
+.animate-node-float {
+  animation: nodeFloat 6s ease-in-out infinite;
+}
+
+/* Network Background */
+.network-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.network-bg svg {
+  width: 100%;
+  height: 100%;
+}
+
+.network-line {
+  stroke: rgba(139, 92, 246, 0.2);
+  stroke-width: 1;
+  fill: none;
+  stroke-dasharray: 5, 5;
+  animation: drawLine 8s ease-in-out infinite;
+}
+
+.network-node {
+  fill: rgba(139, 92, 246, 0.3);
+  animation: nodeFloat 6s ease-in-out infinite;
+}
+
 /* Mobile Optimizations */
 @media (max-width: 768px) {
   .animate-blob {
@@ -616,5 +696,14 @@
 
   .rotate-y-180 {
     transform: none;
+  }
+
+  /* Simplify network animations on mobile */
+  .network-line {
+    animation-duration: 12s;
+  }
+
+  .network-node {
+    animation-duration: 8s;
   }
 }
