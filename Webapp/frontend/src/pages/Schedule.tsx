@@ -1235,7 +1235,7 @@ export default function Schedule() {
                     <h4 className="font-medium text-blue-900 mb-2">
                       Generated Content for: "{schedulePostData.topic}"
                     </h4>
-                    <div className="text-sm text-blue-700">
+                    {/* <div className="text-sm text-blue-700">
                       <p>
                         <strong>Niche:</strong>{" "}
                         {schedulePostData.identified_style.niche}
@@ -1248,7 +1248,7 @@ export default function Schedule() {
                         <strong>Style:</strong>{" "}
                         {schedulePostData.identified_style.writing_style}
                       </p>
-                    </div>
+                    </div> */}
                   </div>
                 )}
 
