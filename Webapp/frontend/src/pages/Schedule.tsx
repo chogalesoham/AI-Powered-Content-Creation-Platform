@@ -90,6 +90,9 @@ const recurringSchedules = [
 ];
 
 export default function Schedule() {
+  // Add state for editing drafts
+  const [editingDraft, setEditingDraft] = useState<any>(null);
+  const [editDraftContent, setEditDraftContent] = useState("");
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<
     "scheduled" | "recurring" | "drafts"
@@ -1058,7 +1061,7 @@ export default function Schedule() {
                 drafts.map((draft, index) => (
                   <div
                     key={index}
-                    className="bg-white rounded-xl shadow-sm border border-gray-200 p-6"
+                    className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 relative"
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -1116,9 +1119,56 @@ export default function Schedule() {
                           ).toLocaleString()}
                         </div>
                       </div>
+                      <button
+                        className="ml-4 px-3 py-1 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors"
+                        onClick={() => {
+                          setEditingDraft(draft);
+                          setEditDraftContent(draft.generated_draft);
+                        }}
+                      >
+                        Edit
+                      </button>
                     </div>
                   </div>
                 ))
+
+                // Edit Modal (only show once, outside the map)
+              )}
+              {editingDraft && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                  <div className="bg-white rounded-lg p-6 w-full max-w-lg shadow-lg">
+                    <h2 className="text-xl font-bold mb-4">Edit Draft</h2>
+                    <textarea
+                      className="w-full h-40 border rounded p-2 mb-4"
+                      value={editDraftContent}
+                      onChange={(e) => setEditDraftContent(e.target.value)}
+                    />
+                    <div className="flex justify-end space-x-2">
+                      <button
+                        className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                        onClick={() => setEditingDraft(null)}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600"
+                        onClick={() => {
+                          setDrafts(
+                            drafts.map((d) =>
+                              d.id === editingDraft.id
+                                ? { ...d, generated_draft: editDraftContent }
+                                : d
+                            )
+                          );
+                          setEditingDraft(null);
+                          // Optionally, persist to backend or localStorage here
+                        }}
+                      >
+                        Save
+                      </button>
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
           )}
