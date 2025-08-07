@@ -1,7 +1,12 @@
-import React from 'react';
-import ContentChat from './ContentChat';
+import React from "react";
+import ContentChat from "./ContentChat";
 
-export default function PostGenerationAI(props) {
-  // Just render the original ContentChat for now, will refactor name and props next
-  return <ContentChat {...props} />;
+export default function PostGenerationAI(props: any) {
+  return (
+    <div>
+      <div style={{ marginTop: 24 }}>
+        <ContentChat {...props} />
+      </div>
+    </div>
+  );
 }

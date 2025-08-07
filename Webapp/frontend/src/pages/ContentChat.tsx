@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../api";
 import { TypewriterMessage } from "../components/TypewriterText";
 import ContentCard from "../components/ContentCard";
+import FileUpload from "../components/FileUpload";
 
 interface ContentChatProps {
   user: any;
@@ -231,6 +232,11 @@ export default function ContentChat({ user }: ContentChatProps) {
     console.log("Saving draft:", content);
   };
 
+  const handleFileUpload = (file: File) => {
+    alert(`File uploaded: ${file.name}`);
+    // You can add further logic here to process the file
+  };
+
   return (
     <div className="flex-1 flex h-screen">
       {/* Chat Section */}
@@ -375,6 +381,7 @@ export default function ContentChat({ user }: ContentChatProps) {
               >
                 <Send className="w-4 h-4" />
               </button>
+              <FileUpload onUpload={handleFileUpload} />
             </div>
           </form>
         </div>
