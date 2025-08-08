@@ -69,9 +69,9 @@ export default function Signup({ onSignup }: SignupProps) {
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center p-4 relative overflow-hidden bg-gradient-animated">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
-        <div className="absolute top-40 left-40 w-80 h-80 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000"></div>
+        <div className="absolute top-40 left-40 w-80 h-80 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000"></div>
 
         {/* Floating Particles */}
         <div className="absolute top-16 left-16 w-2 h-2 bg-purple-400 rounded-full animate-float animation-delay-200"></div>
@@ -81,6 +81,45 @@ export default function Signup({ onSignup }: SignupProps) {
         <div className="absolute top-1/2 left-8 w-2 h-2 bg-blue-400 rounded-full animate-float animation-delay-250"></div>
         <div className="absolute top-1/4 right-8 w-1 h-1 bg-pink-400 rounded-full animate-float animation-delay-350"></div>
         <div className="absolute top-3/4 left-12 w-2 h-2 bg-purple-400 rounded-full animate-float animation-delay-450"></div>
+      </div>
+
+      {/* Animated Network Background */}
+      <div className="network-bg">
+        <svg viewBox="0 0 1200 800" className="absolute inset-0">
+          {/* Network Lines - Different pattern from login */}
+          <line x1="120" y1="80" x2="320" y2="180" className="network-line" style={{animationDelay: '0.2s'}} />
+          <line x1="320" y1="180" x2="520" y2="130" className="network-line" style={{animationDelay: '0.7s'}} />
+          <line x1="520" y1="130" x2="720" y2="230" className="network-line" style={{animationDelay: '1.2s'}} />
+          <line x1="720" y1="230" x2="920" y2="160" className="network-line" style={{animationDelay: '1.7s'}} />
+          <line x1="180" y1="420" x2="380" y2="370" className="network-line" style={{animationDelay: '2.2s'}} />
+          <line x1="380" y1="370" x2="580" y2="420" className="network-line" style={{animationDelay: '2.7s'}} />
+          <line x1="580" y1="420" x2="780" y2="370" className="network-line" style={{animationDelay: '3.2s'}} />
+          <line x1="130" y1="620" x2="330" y2="570" className="network-line" style={{animationDelay: '3.7s'}} />
+          <line x1="330" y1="570" x2="530" y2="620" className="network-line" style={{animationDelay: '4.2s'}} />
+          <line x1="530" y1="620" x2="730" y2="570" className="network-line" style={{animationDelay: '4.7s'}} />
+
+          {/* Connecting diagonal lines */}
+          <line x1="320" y1="180" x2="180" y2="420" className="network-line" style={{animationDelay: '1.2s'}} />
+          <line x1="520" y1="130" x2="380" y2="370" className="network-line" style={{animationDelay: '2.2s'}} />
+          <line x1="720" y1="230" x2="580" y2="420" className="network-line" style={{animationDelay: '3.2s'}} />
+          <line x1="380" y1="370" x2="330" y2="570" className="network-line" style={{animationDelay: '2.7s'}} />
+          <line x1="580" y1="420" x2="530" y2="620" className="network-line" style={{animationDelay: '3.7s'}} />
+
+          {/* Network Nodes */}
+          <circle cx="120" cy="80" r="3" className="network-node" style={{animationDelay: '0.2s'}} />
+          <circle cx="320" cy="180" r="4" className="network-node" style={{animationDelay: '0.7s'}} />
+          <circle cx="520" cy="130" r="3" className="network-node" style={{animationDelay: '1.2s'}} />
+          <circle cx="720" cy="230" r="4" className="network-node" style={{animationDelay: '1.7s'}} />
+          <circle cx="920" cy="160" r="3" className="network-node" style={{animationDelay: '2.2s'}} />
+          <circle cx="180" cy="420" r="4" className="network-node" style={{animationDelay: '2.7s'}} />
+          <circle cx="380" cy="370" r="5" className="network-node" style={{animationDelay: '3.2s'}} />
+          <circle cx="580" cy="420" r="4" className="network-node" style={{animationDelay: '3.7s'}} />
+          <circle cx="780" cy="370" r="3" className="network-node" style={{animationDelay: '4.2s'}} />
+          <circle cx="130" cy="620" r="4" className="network-node" style={{animationDelay: '4.7s'}} />
+          <circle cx="330" cy="570" r="5" className="network-node" style={{animationDelay: '5.2s'}} />
+          <circle cx="530" cy="620" r="4" className="network-node" style={{animationDelay: '5.7s'}} />
+          <circle cx="730" cy="570" r="3" className="network-node" style={{animationDelay: '6.2s'}} />
+        </svg>
       </div>
 
       <div className="max-w-md w-full relative z-10">

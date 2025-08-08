@@ -153,13 +153,15 @@ Keep it light, brief, and conversational!`;
   return (
     <>
       {/* Chat Button */}
+
       {!isOpen && (
         <button
           onClick={() => {
             setIsOpen(true);
             addWelcomeMessage();
           }}
-          className="fixed bottom-6 right-6 w-14 h-14 bg-purple-600 hover:bg-purple-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center z-50 group"
+          className="fixed bottom-6 right-6 w-14 h-14 bg-purple-600 hover:bg-purple-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center z-50 fixed bottom-4 right-4 group"
+          style={{ position: 'fixed', bottom: '1.5rem', right: '1.5rem' }}
         >
           <MessageCircle className="w-6 h-6" />
           <div className="absolute -top-2 -right-2 w-4 h-4 bg-green-500 rounded-full animate-pulse"></div>
@@ -173,9 +175,10 @@ Keep it light, brief, and conversational!`;
 
       {/* Chat Window */}
       {isOpen && (
-        <div className={`fixed bottom-6 right-6 w-80 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 transition-all duration-300 ${
-          isMinimized ? 'h-14' : 'h-96'
-        }`}>
+        <div
+          className={`fixed bottom-6 right-6 w-80 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 transition-all duration-300 ${isMinimized ? 'h-14' : 'h-96'}`}
+          style={{ position: 'fixed', bottom: '1.5rem', right: '1.5rem' }}
+        >
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-purple-600 text-white rounded-t-xl">
             <div className="flex items-center space-x-2">

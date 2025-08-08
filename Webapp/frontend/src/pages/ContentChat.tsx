@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../api";
 import { TypewriterMessage } from "../components/TypewriterText";
 import ContentCard from "../components/ContentCard";
+import FileUpload from "../components/FileUpload";
 
 interface ContentChatProps {
   user: any;
@@ -84,7 +85,7 @@ export default function ContentChat({ user }: ContentChatProps) {
       );
 
       // Call the refine_post endpoint
-      const response = await fetch("http://127.0.0.1:5001/refine_post", {
+      const response = await fetch("http://127.0.0.1:5005/refine_post", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -231,6 +232,125 @@ export default function ContentChat({ user }: ContentChatProps) {
     console.log("Saving draft:", content);
   };
 
+  const handleFileUpload = async (file: File) => {
+    setIsTyping(true);
+    try {
+      // Prepare form data for RAG API
+      const formData = new FormData();
+      formData.append("document", file);
+      formData.append("instruction", inputValue || "");
+
+      // Call the RAG API endpoint
+      const response = await fetch("http://127.0.0.1:5002/generate_rag_post", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("RAG Post API Response:", data);
+
+      // Create AI message with the response
+      const aiMessage: Message = {
+        id: Date.now().toString(),
+        type: "ai",
+        content: `I've generated a post using your uploaded document. Here's the result:`,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, aiMessage]);
+
+      // Convert response to GeneratedContent format
+      const generatedContent: GeneratedContent[] = [
+        {
+          id: Date.now().toString(),
+          platform: "LinkedIn",
+          content:
+            data.generated_post ||
+            data.content ||
+            JSON.stringify(data, null, 2),
+          metadata: {
+            estimatedEngagement: 80,
+            wordCount: data.generated_post?.split(" ").length || 50,
+            characterCount: data.generated_post?.length || 280,
+            hashtags: [],
+            mentions: [],
+          },
+          suggestions: [
+            "Generated post using your uploaded document",
+            "Optimized for your niche and tone",
+            "Ready to use on your preferred platform",
+          ],
+        },
+      ];
+      setGeneratedContent(generatedContent);
+
+      // Store the data in sessionStorage for the Schedule page to access
+      const scheduleData = {
+        linkedin_post:
+          data.linkedin_post || data.generated_post || data.content,
+        twitter_post: data.twitter_post || data.generated_post || data.content,
+        topic: file.name,
+        identified_style: {
+          niche: user?.niche || "Technology",
+          tone: user?.tone || "Professional",
+          writing_style: "Informative",
+        },
+      };
+      sessionStorage.setItem("schedulePostData", JSON.stringify(scheduleData));
+      navigate("/schedule");
+    } catch (error: any) {
+      console.error("RAG Response Error:", error);
+      // Fallback response with typewriter effect
+      const aiMessageContent = `I'm having trouble connecting to the RAG service right now. Here's a sample response based on your uploaded file "${file.name}":`;
+      const aiMessage: Message = {
+        id: Date.now().toString(),
+        type: "ai",
+        content: aiMessageContent,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, { ...aiMessage, content: "" }]);
+      setShowTypewriter(aiMessage.id);
+      setCurrentTypingMessage(aiMessageContent);
+      // Provide fallback content with enhanced metadata
+      const fallbackContent: GeneratedContent[] = [
+        {
+          id: Date.now().toString(),
+          platform: "LinkedIn",
+          content: `Here's a professional post based on your uploaded file "${
+            file.name
+          }":\n\nIn my experience working in ${
+            user?.niche || "this industry"
+          }, I've learned that...\n\n• Key insight 1\n• Key insight 2\n• Key insight 3\n\nWhat's your take on this?\n\n#${
+            user?.niche?.replace(/\s+/g, "") || "Professional"
+          } #Insights`,
+          metadata: {
+            estimatedEngagement: Math.floor(Math.random() * 40) + 60, // 60-100%
+            wordCount: 45,
+            characterCount: 280,
+            hashtags: [
+              user?.niche?.replace(/\s+/g, "") || "Professional",
+              "Insights",
+              "Leadership",
+            ],
+            mentions: [],
+          },
+          suggestions: [
+            "Consider adding a personal story to increase engagement",
+            "This post has strong professional appeal",
+            "The question at the end encourages interaction",
+            "Hashtags are well-targeted for your industry",
+          ],
+        },
+      ];
+      setGeneratedContent(fallbackContent);
+    } finally {
+      setIsTyping(false);
+    }
+  };
+
   return (
     <div className="flex-1 flex h-screen">
       {/* Chat Section */}
@@ -375,6 +495,7 @@ export default function ContentChat({ user }: ContentChatProps) {
               >
                 <Send className="w-4 h-4" />
               </button>
+              <FileUpload onUpload={handleFileUpload} />
             </div>
           </form>
         </div>
