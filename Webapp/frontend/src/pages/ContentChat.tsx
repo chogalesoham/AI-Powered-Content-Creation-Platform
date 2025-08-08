@@ -85,7 +85,7 @@ export default function ContentChat({ user }: ContentChatProps) {
       );
 
       // Call the refine_post endpoint
-      const response = await fetch("http://127.0.0.1:5001/refine_post", {
+      const response = await fetch("http://127.0.0.1:5005/refine_post", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

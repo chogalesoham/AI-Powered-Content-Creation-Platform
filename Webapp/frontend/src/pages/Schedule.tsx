@@ -15,7 +15,7 @@ import {
 import { useAuth } from "../contexts/AuthContext";
 import api from "../api";
 
-import data from "../../../../AI/DheerajTSEC/Schedule/final.json";
+import data from "../../../../AI//Schedule/final.json";
 
 const scheduledPosts = [
   {
